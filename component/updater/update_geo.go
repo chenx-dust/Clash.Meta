@@ -45,6 +45,9 @@ func SetGeoUpdateInterval(newGeoUpdateInterval int) {
 }
 
 func UpdateMMDB() (err error) {
+	sendGeoUpdateStatus("MMDB", true, nil)
+	defer func() { sendGeoUpdateStatus("MMDB", false, err) }()
+
 	vehicle := resource.NewHTTPVehicle(geodata.MmdbUrl(), C.Path.MMDB(), "", nil, defaultHttpTimeout, 0)
 	var oldHash utils.HashType
 	if buf, err := os.ReadFile(vehicle.Path()); err == nil {
@@ -76,6 +79,9 @@ func UpdateMMDB() (err error) {
 }
 
 func UpdateASN() (err error) {
+	sendGeoUpdateStatus("ASN", true, nil)
+	defer func() { sendGeoUpdateStatus("ASN", false, err) }()
+
 	vehicle := resource.NewHTTPVehicle(geodata.ASNUrl(), C.Path.ASN(), "", nil, defaultHttpTimeout, 0)
 	var oldHash utils.HashType
 	if buf, err := os.ReadFile(vehicle.Path()); err == nil {
@@ -107,6 +113,9 @@ func UpdateASN() (err error) {
 }
 
 func UpdateGeoIp() (err error) {
+	sendGeoUpdateStatus("GEOIP", true, nil)
+	defer func() { sendGeoUpdateStatus("GEOIP", false, err) }()
+
 	geoLoader, err := geodata.GetGeoDataLoader("standard")
 
 	vehicle := resource.NewHTTPVehicle(geodata.GeoIpUrl(), C.Path.GeoIP(), "", nil, defaultHttpTimeout, 0)
@@ -137,6 +146,9 @@ func UpdateGeoIp() (err error) {
 }
 
 func UpdateGeoSite() (err error) {
+	sendGeoUpdateStatus("GEOSITE", true, nil)
+	defer func() { sendGeoUpdateStatus("GEOSITE", false, err) }()
+
 	geoLoader, err := geodata.GetGeoDataLoader("standard")
 
 	vehicle := resource.NewHTTPVehicle(geodata.GeoSiteUrl(), C.Path.GeoSite(), "", nil, defaultHttpTimeout, 0)
