@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/metacubex/mihomo/common/atomic"
+	"github.com/metacubex/mihomo/common/lowmemory"
 	mihomoHttp "github.com/metacubex/mihomo/component/http"
 	"github.com/metacubex/mihomo/component/mmdb"
 	C "github.com/metacubex/mihomo/constant"
@@ -88,6 +89,10 @@ func downloadToPath(url string, path string) (err error) {
 }
 
 func InitGeoSite() error {
+	if lowmemory.Enabled() {
+		geoSiteEnable.Store(false)
+		return nil
+	}
 	geoSiteEnable.Store(true)
 	initGeoSiteMutex.Lock()
 	defer initGeoSiteMutex.Unlock()
@@ -115,6 +120,10 @@ func InitGeoSite() error {
 }
 
 func InitGeoIP() error {
+	if lowmemory.Enabled() {
+		geoIpEnable.Store(false)
+		return nil
+	}
 	geoIpEnable.Store(true)
 	initGeoIPMutex.Lock()
 	defer initGeoIPMutex.Unlock()
@@ -166,6 +175,10 @@ func InitGeoIP() error {
 }
 
 func InitASN() error {
+	if lowmemory.Enabled() {
+		asnEnable.Store(false)
+		return nil
+	}
 	asnEnable.Store(true)
 	initASNMutex.Lock()
 	defer initASNMutex.Unlock()

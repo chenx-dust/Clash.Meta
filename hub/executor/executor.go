@@ -340,7 +340,7 @@ func loadProvider[T P.Provider](providers map[string]T) {
 	}
 
 	wg := sync.WaitGroup{}
-	ch := make(chan struct{}, concurrentCount)
+	ch := make(chan struct{}, getConcurrentCount())
 	for _, pv := range providers {
 		pv := pv
 		wg.Add(1)

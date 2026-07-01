@@ -5,6 +5,7 @@ import (
 	"net/netip"
 	"strings"
 
+	"github.com/metacubex/mihomo/common/lowmemory"
 	"github.com/metacubex/mihomo/component/cidr"
 	"github.com/metacubex/mihomo/component/geodata/strmatcher"
 	"github.com/metacubex/mihomo/component/trie"
@@ -64,7 +65,7 @@ func NewSuccinctMatcherGroup(domains []*Domain) (DomainMatcher, error) {
 	m := &succinctDomainMatcher{
 		count: len(domains),
 	}
-	for _, d := range domains {
+	for i, d := range domains {
 		switch d.Type {
 		case Domain_Plain, Domain_Regex:
 			matcher, err := matcherTypeMap[d.Type].New(d.Value)
@@ -85,8 +86,14 @@ func NewSuccinctMatcherGroup(domains []*Domain) (DomainMatcher, error) {
 				return nil, err
 			}
 		}
+		domains[i] = nil
+		if i%16384 == 0 {
+			lowmemory.GC()
+		}
 	}
+	lowmemory.GC()
 	m.set = t.NewDomainSet()
+	lowmemory.GC()
 	return m, nil
 }
 
@@ -97,7 +104,7 @@ type v2rayDomainMatcher struct {
 
 func NewMphMatcherGroup(domains []*Domain) (DomainMatcher, error) {
 	g := strmatcher.NewMphMatcherGroup()
-	for _, d := range domains {
+	for i, d := range domains {
 		matcherType, f := matcherTypeMap[d.Type]
 		if !f {
 			return nil, fmt.Errorf("unsupported domain type %v", d.Type)
@@ -106,8 +113,14 @@ func NewMphMatcherGroup(domains []*Domain) (DomainMatcher, error) {
 		if err != nil {
 			return nil, err
 		}
+		domains[i] = nil
+		if i%16384 == 0 {
+			lowmemory.GC()
+		}
 	}
+	lowmemory.GC()
 	g.Build()
+	lowmemory.GC()
 	return &v2rayDomainMatcher{
 		matchers: g,
 		count:    len(domains),
@@ -154,11 +167,12 @@ func (m *geoIPMatcher) Count() int {
 }
 
 func NewGeoIPMatcher(cidrList []*CIDR) (IPMatcher, error) {
+	defer lowmemory.GC()
 	m := &geoIPMatcher{
 		cidrSet: cidr.NewIpCidrSet(),
 		count:   len(cidrList),
 	}
-	for _, cidr := range cidrList {
+	for i, cidr := range cidrList {
 		addr, ok := netip.AddrFromSlice(cidr.Ip)
 		if !ok {
 			return nil, fmt.Errorf("error when loading GeoIP: invalid IP: %s", cidr.Ip)
@@ -167,7 +181,12 @@ func NewGeoIPMatcher(cidrList []*CIDR) (IPMatcher, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error when loading GeoIP: %w", err)
 		}
+		cidrList[i] = nil
+		if i%16384 == 0 {
+			lowmemory.GC()
+		}
 	}
+	lowmemory.GC()
 	err := m.cidrSet.Merge()
 	if err != nil {
 		return nil, err
