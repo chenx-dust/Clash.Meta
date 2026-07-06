@@ -393,7 +393,7 @@ type RawTLS struct {
 	ClientAuthType  string   `yaml:"client-auth-type" json:"client-auth-type"`
 	ClientAuthCert  string   `yaml:"client-auth-cert" json:"client-auth-cert"`
 	EchKey          string   `yaml:"ech-key" json:"ech-key"`
-	CustomTrustCert []string `yaml:"custom-certifactes" json:"custom-certifactes"`
+	CustomTrustCert []string `yaml:"custom-certificates" json:"custom-certificates"`
 }
 
 type RawConfig struct {
