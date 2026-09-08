@@ -20,6 +20,7 @@ import (
 	C "github.com/metacubex/mihomo/constant"
 	P "github.com/metacubex/mihomo/constant/provider"
 	LC "github.com/metacubex/mihomo/listener/config"
+	"github.com/metacubex/mihomo/listener/mipstack"
 	"github.com/metacubex/mihomo/listener/sing"
 	"github.com/metacubex/mihomo/log"
 	"golang.org/x/exp/constraints"
@@ -501,16 +502,21 @@ func New(options LC.Tun, tunnel C.Tunnel, additions ...inbound.Addition) (l *Lis
 	}
 	l.tunIf = tunIf
 
-	tunStack, err := tun.NewStack(strings.ToLower(options.Stack.String()), stackOptions)
+	var tunStack tun.Stack
+	if options.Stack == C.TunMips {
+		tunStack, err = mipstack.New(stackOptions)
+	} else {
+		tunStack, err = tun.NewStack(strings.ToLower(options.Stack.String()), stackOptions)
+	}
 	if err != nil {
 		return
 	}
 
+	l.tunStack = tunStack
 	err = tunStack.Start()
 	if err != nil {
 		return
 	}
-	l.tunStack = tunStack
 
 	if l.autoRedirect != nil {
 		if len(l.options.RouteAddressSet) > 0 && len(l.routeAddressSet) == 0 {
